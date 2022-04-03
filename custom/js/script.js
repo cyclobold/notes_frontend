@@ -80,7 +80,7 @@ window.onload = function(){
                 <h3 class="mb-0">${result[i].post_title}</h3>
                 <div class="mb-1 text-muted">Nov 12</div>
                 <p class="card-text mb-auto">${result[i].post_summary}</p>
-                <a href="#" class="stretched-link">Continue reading</a>
+                <a href="#" class="stretched-link" onclick="updatePost('${result[i]._id}')">Update</a>
               </div>
               <div class="col-auto d-none d-lg-block">
                 <svg class="bd-placeholder-img" width="200" height="250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false"><title>Placeholder</title><rect width="100%" height="100%" fill="#55595c"/><text x="50%" y="50%" fill="#eceeef" dy=".3em">Thumbnail</text></svg>
@@ -98,5 +98,95 @@ window.onload = function(){
 
 
   })
+
+}
+
+
+const updatePost = async (post_id) => {
+
+  //get the data from database
+  feedback = await axios.get(`http://localhost:4000/get-post?post_id=${post_id}`)
+
+  data = feedback.data.data
+
+  console.log(data)
+
+  //construct a modal for the form
+  updateModalCode = `  <div class="modal" tabindex="-1" id="update-post-modal_${data._id}" data-backdrop="static">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Update Post</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form class="form" method="POST" id="update-post-form_${data._id}">
+          <div class="form-group">
+              <label>Post title</label>
+              <input type="text" value="${data.post_title}" name="post_title" class="form-control" placeholder="Enter Post title">
+          </div>
+
+          <div class="form-group">
+              <label>Post Summary</label>
+              <textarea name='post_summary' class="form-control">${data.post_summary}</textarea>
+          </div>
+
+          <div class="form-group">
+              <label>Post Content</label>
+              <textarea name='post_content' class="form-control">${data.post_content}</textarea>
+          </div>
+
+          <div class="form-group">
+
+              <button class="btn btn-md btn-primary">Update Post</button>
+          </div>
+
+
+        </form>
+      </div>
+      <!-- <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div> -->
+    </div>
+  </div>
+</div>`;
+
+//trigger the modal
+const updateDivElement = document.createElement("div");
+
+updateDivElement.innerHTML = updateModalCode;
+document.body.appendChild(updateDivElement);
+
+// $(`#update-post-form_")[0].reset();
+
+$("#update-post-modal_"+data._id).modal("show");
+
+
+
+
+  //process update
+  document.querySelector("#update-post-form_"+data._id).addEventListener("submit", function(e){
+    e.preventDefault();
+
+    new_post_title = this.post_title.value.trim();
+    new_post_summary = this.post_summary.value.trim();
+    new_post_content = this.post_content.value.trim();
+
+    axios.post("http://localhost:4000/update-post", {
+      post_title: new_post_title,
+      post_summary: new_post_summary,
+      post_content: new_post_content,
+      post_id: data._id
+    }).then((result) => {
+
+      console.log(result)
+
+    })
+    
+  })
+
 
 }
